@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from scrapy.linkextractors import LinkExtractor
-from scrapy.spiders import CrawlSpider, Rule
 from jarvis_scraper.items import JarvisScraperItem
+from jarvis_scraper.nlp.lib import should_parse
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import Rule
 
 
 class JarvisScraperSpider(scrapy.Spider):
     name = 'jarvis_scraper'
-    allowed_domains = ['louvre.fr']
     start_urls = ['http://www.louvre.fr/']
     rules = [
         Rule(
@@ -34,18 +34,13 @@ class JarvisScraperSpider(scrapy.Spider):
             canonicalize=True, unique=True).extract_links(response)
         # Now go through all the found links
         for link in links:
-            # Check whether the domain of the URL of the link is allowed; so
-            # whether it is in one of the allowed domains
-            is_allowed = False
-            for allowed_domain in self.allowed_domains:
-                if allowed_domain in link.url:
-                    is_allowed = True
-            # If it is allowed, create a new item and add it to the list of
-            # found items
-            if is_allowed:
+            url_to = link.url
+            if should_parse(url_to, 0.7):
                 item = JarvisScraperItem()
-                item['url_from'] = response.url
                 item['url_to'] = link.url
                 items.append(item)
+            # [TODO] Process page here
+            # If page seems to be a right page (RAKE algo+cosine)
+            # then summarize, add to item==>Extract to CSV
         # Return all the found items
         return items

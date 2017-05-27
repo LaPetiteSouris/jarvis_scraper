@@ -9,10 +9,6 @@ import scrapy
 
 
 class JarvisScraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-        # The source URL
-    url_from = scrapy.Field()
-    # The destination URL
     url_to = scrapy.Field()
+    summarized_text = scrapy.Field()
     pass
