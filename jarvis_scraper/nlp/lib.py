@@ -22,7 +22,7 @@ standard_keywords = ['découvrir', 'conférences', 'musée',
 
 
 def counter_cosine_similarity(c1, c2):
-    """Caluclate Cosine distance of 2 counter object"""
+    """Caluclate Cosine distance of 2 counter objects"""
     terms = set(c1).union(c2)
     dotprod = sum(c1.get(k, 0) * c2.get(k, 0) for k in terms)
     magA = math.sqrt(sum(c1.get(k, 0)**2 for k in terms))
