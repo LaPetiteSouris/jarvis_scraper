@@ -29,6 +29,7 @@ class JarvisScraperSpider(scrapy.Spider):
 
     # Method for parsing items
     def parse(self, response):
+        items = []
         # The list of items that are found on the particular page
         url_distance = {}
         # Only extract canonicalized and unique links (with respect to the
@@ -41,12 +42,11 @@ class JarvisScraperSpider(scrapy.Spider):
             distance = get_distance(url_to)
             url_distance[url_to] = distance
             # Get url with best content matches based on Cosine distance
-            best_url_matches = dict(
-                sorted(url_distance.items(), key=operator.itemgetter(1),
-                       reverse=True)[:5])
-            items = []
-            for url in best_url_matches:
-                item = JarvisScraperItem()
-                item['url_to'] = url
-                items.append(item)
+        best_url_matches = dict(
+            sorted(url_distance.items(), key=operator.itemgetter(1),
+                   reverse=True)[:5])
+        for url in best_url_matches:
+            item = JarvisScraperItem()
+            item['url_to'] = url
+            items.append(item)
         return items
