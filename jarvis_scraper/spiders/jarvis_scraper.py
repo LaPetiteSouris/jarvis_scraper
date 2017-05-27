@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
+import operator
+
 import scrapy
-from jarvis_scraper.items import JarvisScraperItem
-from jarvis_scraper.nlp.lib import should_parse
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
+
+from jarvis_scraper.items import JarvisScraperItem
+from jarvis_scraper.nlp.lib import get_distance
 
 
 class JarvisScraperSpider(scrapy.Spider):
     name = 'jarvis_scraper'
-    start_urls = ['http://www.louvre.fr/']
+    start_urls = ['http://www.musee-armee.fr']
     rules = [
         Rule(
             LinkExtractor(
@@ -27,7 +30,7 @@ class JarvisScraperSpider(scrapy.Spider):
     # Method for parsing items
     def parse(self, response):
         # The list of items that are found on the particular page
-        items = []
+        url_distance = {}
         # Only extract canonicalized and unique links (with respect to the
         # current page)
         links = LinkExtractor(
@@ -35,12 +38,15 @@ class JarvisScraperSpider(scrapy.Spider):
         # Now go through all the found links
         for link in links:
             url_to = link.url
-            if should_parse(url_to, 0.7):
+            distance = get_distance(url_to)
+            url_distance[url_to] = distance
+            # Get url with best content matches based on Cosine distance
+            best_url_matches = dict(
+                sorted(url_distance.items(), key=operator.itemgetter(1),
+                       reverse=True)[:5])
+            items = []
+            for url in best_url_matches:
                 item = JarvisScraperItem()
-                item['url_to'] = link.url
+                item['url_to'] = url
                 items.append(item)
-            # [TODO] Process page here
-            # If page seems to be a right page (RAKE algo+cosine)
-            # then summarize, add to item==>Extract to CSV
-        # Return all the found items
         return items

@@ -6,9 +6,9 @@ from collections import Counter
 from urllib.request import Request, urlopen
 
 from bs4 import BeautifulSoup
+from gensim.summarization import summarize
 
 import jarvis_scraper.nlp.rake as rake
-from gensim.summarization import summarize
 
 # French stopwords
 stoppath = "jarvis_scraper/nlp/FrenchStoplist.txt"
@@ -22,6 +22,7 @@ standard_keywords = ['découvrir', 'conférences', 'musée',
 
 
 def counter_cosine_similarity(c1, c2):
+    """Caluclate Cosine distance of 2 counter object"""
     terms = set(c1).union(c2)
     dotprod = sum(c1.get(k, 0) * c2.get(k, 0) for k in terms)
     magA = math.sqrt(sum(c1.get(k, 0)**2 for k in terms))
@@ -33,16 +34,21 @@ def counter_cosine_similarity(c1, c2):
     return res
 
 
-def should_parse(url, limit=0.5):
+def get_distance(url):
+    """Given an URL, parse content and get
+    Cosine distance from given list of keywords
+    """
     text = get_text_from_url(url)
     keywords = get_keywords_vectors(text)
     k_counter = Counter(keywords)
     st_k_counter = Counter(standard_keywords)
     dis = counter_cosine_similarity(k_counter, st_k_counter)
-    return dis > limit
+    print("Distance from {} is ".format(url), dis)
+    return dis
 
 
 def get_text_from_url(url):
+    """Get raw text from a given URL"""
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     html = urlopen(req).read()
     soup = BeautifulSoup(html)
@@ -50,9 +56,11 @@ def get_text_from_url(url):
 
 
 def get_keywords_vectors(text):
+    """Using RAKE algorithm, extract vector of keywords from text"""
     keywords = rake_object.run(text)
     return [k[0] for k in keywords]
 
 
 def summarize_text(text):
+    """Summarize text into 50 words"""
     return summarize(text, word_count=50)
